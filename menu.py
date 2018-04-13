@@ -13,7 +13,12 @@ class Menu:
         self.message_line = ""
 
     def get_input(self, prompt = "> "):
-        "Handles user input key by key"
+        """Handles user input key by key :
+            - [esc] or "q" to quit the calculator
+            - [enter] to duplicate last stack element or to lauch the command being constituted
+            - [backspace] to remove last stack element
+            - +, -, * and / operands to execute the operation
+            - any other key to constitute the command or a stack element"""
         result = ""
         while True:
             self.stdscr.addstr(8, 0, "                       ")
@@ -31,8 +36,11 @@ class Menu:
                     result = result[:-1]
             elif key == 13 or key == 10:
                 break
-            elif chr(key) in ["+", "-", "*", "/"] and result == "":
-                result = chr(key)
+            elif chr(key) in ["+", "-", "*", "/"]:
+                if result == "":
+                    result = chr(key)
+                else:
+                    result += " " + chr(key)
                 break
             else:
                 result += chr(key)
@@ -40,7 +48,7 @@ class Menu:
         return result
 
     def print_stack(self):
-        "Print the stack content on screen, plus the status line"
+        "Print the stack content on screen, plus the message line"
         for y in range(0, 7):
             try:
                 self.stdscr.addstr(7 - y, 0, str(self.stack[-y - 1]))
@@ -66,24 +74,25 @@ class Menu:
             while True:
                 self.stdscr.clear()
                 self.print_stack()
-                cmd = self.get_input()
-                saved_stack = copy.deepcopy(self.stack)
-                try:
-                    if self.will_it_float(cmd):
-                        self.stack.append(float(cmd))
-                    else:
-                        self.stack.execute_command(cmd)
-                except StackUnderflowException as e:
-                    self.message_line = str(e)
-                    self.stack = saved_stack
-                except ZeroDivisionError as e:
-                    self.message_line = "division by zero"
-                    self.stack = saved_stack
-                except UnknownCommandException as e:
-                    self.message_line = str(e)
-                except QuitException as e:
-                    self.message_line = str(e)
-                    exit(0)
+                cmds = self.get_input()
+                for cmd in cmds.split(" "):
+                    saved_stack = copy.deepcopy(self.stack)
+                    try:
+                        if self.will_it_float(cmd):
+                            self.stack.append(float(cmd))
+                        else:
+                            self.stack.execute_command(cmd)
+                    except StackUnderflowException as e:
+                        self.message_line = str(e)
+                        self.stack = saved_stack
+                    except ZeroDivisionError as e:
+                        self.message_line = "division by zero"
+                        self.stack = saved_stack
+                    except UnknownCommandException as e:
+                        self.message_line = str(e)
+                    except QuitException as e:
+                        self.message_line = str(e)
+                        exit(0)
         finally:
             self.stdscr.keypad(False)
             curses.nocbreak()
