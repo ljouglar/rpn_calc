@@ -69,7 +69,11 @@ class Stack(list):
     def substract(self):
         "Substracts last two stack elements"
         to_sub = self.pop()
-        self.append(self.pop() - to_sub)
+        try:
+            self.append(self.pop() - to_sub)
+        except:
+            self.append(- to_sub)
+
 
     def multiply(self):
         "Multiplies last two stack elements"
