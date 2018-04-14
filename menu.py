@@ -2,15 +2,25 @@
 # -*- coding: utf-8 -*-
 
 import copy, curses
-from stack import Stack, QuitException, UnknownCommandException, StackUnderflowException
+from stack import Stack, QuitException, UnknownCommandException, StackUnderflowException, AngleUnitChangeException
 
 class Menu:
     "Show the calculator interface, handles user input"
+    STATUS_LINE_Y = 0
+    STACK_X = 0
+    STACK_SIZE = 8
 
     def __init__(self):
         "Initialize an empty stack"
         self.stack = Stack()
         self.message_line = ""
+
+    def get_status_line(self):
+        "Show angle unit at top of calculator"
+        if self.stack.conv == 1.0:
+            return "RAD"
+        else:
+            return "DEG"
 
     def get_input(self, prompt = "> "):
         """Handles user input key by key :
@@ -20,9 +30,10 @@ class Menu:
             - +, -, * and / operands to execute the operation
             - any other key to constitute the command or a stack element"""
         result = ""
+        prompt_y = self.STATUS_LINE_Y + 1 + self.STACK_SIZE
         while True:
-            self.stdscr.addstr(8, 0, "                       ")
-            self.stdscr.addstr(8, 0, prompt + result)
+            self.stdscr.addstr(prompt_y, self.STACK_X, "                       ")
+            self.stdscr.addstr(prompt_y, self.STACK_X, prompt + result)
             curses.flushinp()
             key = self.stdscr.getch()
             if key == 27 or (chr(key) == "q" and result == ""):
@@ -49,12 +60,14 @@ class Menu:
 
     def print_stack(self):
         "Print the stack content on screen, plus the message line"
+        self.stdscr.addstr(self.STATUS_LINE_Y, self.STACK_X, self.get_status_line())
         for y in range(0, 7):
+            line_y = self.STATUS_LINE_Y + self.STACK_SIZE - y
             try:
-                self.stdscr.addstr(7 - y, 0, str(self.stack[-y - 1]))
+                self.stdscr.addstr(line_y, self.STACK_X, str(self.stack[-y - 1]))
             except:
                 break
-        self.stdscr.addstr(9, 0, self.message_line)
+        self.stdscr.addstr(self.STATUS_LINE_Y + self.STACK_SIZE + 2, self.STACK_X, self.message_line)
 
     def will_it_float(self, str):
         "Indicate wether a string can be converted to float or not"
@@ -88,6 +101,8 @@ class Menu:
                     except ZeroDivisionError as e:
                         self.message_line = "division by zero"
                         self.stack = saved_stack
+                    except AngleUnitChangeException as e:
+                        pass # Nothing to do, just re-show stack
                     except UnknownCommandException as e:
                         self.message_line = str(e)
                     except QuitException as e:
