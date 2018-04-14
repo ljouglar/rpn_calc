@@ -9,6 +9,7 @@ class Menu:
     STATUS_LINE_Y = 0
     STACK_X = 0
     STACK_SIZE = 8
+    MSG_LINE_Y = STATUS_LINE_Y + STACK_SIZE + 2
 
     def __init__(self):
         "Initialize an empty stack"
@@ -47,7 +48,7 @@ class Menu:
                     result = result[:-1]
             elif key == 13 or key == 10:
                 break
-            elif chr(key) in ["+", "-", "*", "/"]:
+            elif chr(key) in ["+", "-", "*", "/", "!"]:
                 if result == "":
                     result = chr(key)
                 else:
@@ -59,7 +60,7 @@ class Menu:
         return result
 
     def print_stack(self):
-        "Print the stack content on screen, plus the message line"
+        "Print stack content on screen, plus status and message lines"
         self.stdscr.addstr(self.STATUS_LINE_Y, self.STACK_X, self.get_status_line())
         for y in range(0, 7):
             line_y = self.STATUS_LINE_Y + self.STACK_SIZE - y
@@ -67,7 +68,7 @@ class Menu:
                 self.stdscr.addstr(line_y, self.STACK_X, str(self.stack[-y - 1]))
             except:
                 break
-        self.stdscr.addstr(self.STATUS_LINE_Y + self.STACK_SIZE + 2, self.STACK_X, self.message_line)
+        self.stdscr.addstr(self.MSG_LINE_Y, self.STACK_X, self.message_line)
 
     def will_it_float(self, str):
         "Indicate wether a string can be converted to float or not"
@@ -108,6 +109,9 @@ class Menu:
                     except QuitException as e:
                         self.message_line = str(e)
                         exit(0)
+                    except Exception as e:
+                        self.message_line = str(e)
+                        self.stack = saved_stack
         finally:
             self.stdscr.keypad(False)
             curses.nocbreak()
