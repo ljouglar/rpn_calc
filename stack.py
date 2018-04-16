@@ -186,12 +186,12 @@ class Stack(list):
         self.pop()
 
     def roll(self):
-        "Rolls the stack (first element becomes last)"
-        self.insert(0, self.pop())
+        "Rolls up the stack (last element becomes first)"
+        self.append(self.pop(0))
 
     def rolld(self):
-        "Rolls the stack (last element becomes first)"
-        self.append(self.pop(0))
+        "Rolls down the stack (first element becomes last)"
+        self.insert(0, self.pop())
 
     def quit(self):
         "Send the quit exception to quit the calculator"
